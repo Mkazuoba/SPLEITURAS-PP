@@ -107,20 +107,22 @@
   <script src="auth.js"></script>
   <script>
     const _semConfig = !(localStorage.getItem('sb_url') && localStorage.getItem('sb_key'));
-    const _logado = Auth.requireAuth(true); // true = não redireciona se sem config
+    const _logado = !!Auth.getSession();
 
     if (_semConfig) {
-      // Sem credenciais: acesso liberado só para configurar
+      // Sem credenciais: acesso liberado para configurar
       document.getElementById('secao-usuarios').style.display = 'none';
       const aviso = document.createElement('div');
       aviso.style = 'background:#FAEEDA;border:1px solid #854F0B;border-radius:8px;padding:10px 14px;font-size:13px;color:#633806;margin-bottom:1rem;';
-      aviso.textContent = '⚠️ Configure as credenciais abaixo e salve. Depois acesse login.html para entrar no sistema.';
+      aviso.textContent = '⚠️ Configure as credenciais abaixo e salve. Depois acesse a página de login para entrar no sistema.';
       document.querySelector('.container').insertBefore(aviso, document.querySelector('.card'));
     } else if (!_logado) {
-      // Tem config mas não está logado: requireAuth já redirecionou para login
+      // Tem config mas não está logado: redireciona para login
+      window.location.href = 'login.html';
     } else {
       // Logado: acesso completo
       Auth.renderUserBar('user-bar');
+      document.getElementById('secao-usuarios').style.display = 'block';
     }
     carregarConfig();
 
