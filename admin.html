@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Administração — SP Leituras</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #F7F6F2; --surface: #FFFFFF; --border: #E2E0D8; --border-strong: #C8C5BB;
+      --text: #1A1917; --text-muted: #6B6960; --text-hint: #9E9B93;
+      --accent: #1A1917; --accent-fg: #FFFFFF;
+      --green-bg: #EAF3DE; --green-text: #27500A; --green-border: #3B6D11;
+      --red-bg: #FCEBEB; --red-text: #791F1F; --red-border: #A32D2D;
+      --blue-bg: #E6F1FB; --blue-text: #0C447C; --blue-border: #185FA5;
+      --radius: 12px; --radius-sm: 8px;
+    }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 2rem 1rem 4rem; }
+    .top-bar { position: fixed; top: 0; left: 0; right: 0; padding: 12px 24px; display: flex; justify-content: flex-end; background: var(--bg); border-bottom: 1px solid var(--border); z-index: 10; }
+    .container { max-width: 500px; margin: 4rem auto 0; }
+    .back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-muted); text-decoration: none; margin-bottom: 1.5rem; }
+    .back-link:hover { color: var(--text); }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.75rem; margin-bottom: 1rem; }
+    .card-title { font-size: 17px; font-weight: 600; margin-bottom: 4px; }
+    .card-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 1.5rem; }
+    .field-wrap { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+    label { font-size: 13px; color: var(--text-muted); font-weight: 500; }
+    input { width: 100%; padding: 9px 12px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); outline: none; transition: border-color 0.15s; }
+    input:focus { border-color: var(--border-strong); box-shadow: 0 0 0 3px rgba(26,25,23,0.06); }
+    .btn { width: 100%; padding: 10px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; border-radius: var(--radius-sm); cursor: pointer; transition: opacity 0.15s; margin-top: 4px; }
+    .btn-primary { background: var(--accent); color: var(--accent-fg); border: none; }
+    .btn-primary:hover { opacity: 0.85; }
+    .btn-outline { background: var(--bg); color: var(--text); border: 1px solid var(--border); margin-top: 8px; }
+    .btn-outline:hover { border-color: var(--border-strong); }
+    .btn-danger { background: var(--red-bg); color: var(--red-text); border: 1px solid var(--red-border); margin-top: 8px; }
+    .divider { height: 1px; background: var(--border); margin: 1.25rem 0; }
+    .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 999px; font-size: 13px; font-weight: 500; }
+    .status-ok   { background: var(--green-bg); color: var(--green-text); }
+    .status-err  { background: var(--red-bg); color: var(--red-text); }
+    .status-idle { background: var(--bg); color: var(--text-muted); border: 1px solid var(--border); }
+    .info-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+    .info-row:last-child { border-bottom: none; }
+    .info-label { color: var(--text-muted); }
+    .info-val { font-weight: 500; font-size: 12px; font-family: monospace; }
+    .section-title { font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+    .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); padding: 12px 22px; border-radius: var(--radius); font-size: 14px; font-weight: 500; z-index: 999; opacity: 0; transition: opacity 0.3s; pointer-events: none; box-shadow: 0 4px 20px rgba(0,0,0,0.12); }
+    .toast.show { opacity: 1; }
+    .toast.success { background: var(--green-bg); color: var(--green-text); border: 1px solid var(--green-border); }
+    .toast.error   { background: var(--red-bg); color: var(--red-text); border: 1px solid var(--red-border); }
+  </style>
+</head>
+<body>
+  <div class="top-bar" id="user-bar"></div>
+  <div class="container">
+    <a class="back-link" href="index.html">← Voltar ao início</a>
+
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.25rem;">
+        <div>
+          <div class="card-title">⚙️ Configuração do banco</div>
+          <div class="card-desc" style="margin-bottom:0;">Credenciais do Supabase</div>
+        </div>
+        <div id="conn-status" class="status-badge status-idle">● Não testado</div>
+      </div>
+
+      <div class="field-wrap">
+        <label>URL do Supabase</label>
+        <input type="text" id="sb-url" placeholder="https://xxxxxx.supabase.co" />
+      </div>
+      <div class="field-wrap">
+        <label>Anon Key</label>
+        <input type="password" id="sb-key" placeholder="eyJhbGci..." />
+      </div>
+
+      <button class="btn btn-primary" onclick="salvarConfig()">Salvar configuração</button>
+      <button class="btn btn-outline" onclick="testarConexao()">Testar conexão</button>
+
+      <div class="divider"></div>
+      <div class="section-title">Informações salvas</div>
+      <div class="info-row"><span class="info-label">URL</span><span class="info-val" id="info-url">—</span></div>
+      <div class="info-row"><span class="info-label">Anon Key</span><span class="info-val" id="info-key">—</span></div>
+      <div class="info-row"><span class="info-label">Último teste</span><span class="info-val" id="info-teste">—</span></div>
+
+      <div class="divider"></div>
+      <button class="btn btn-danger" onclick="limparConfig()">Limpar credenciais</button>
+    </div>
+
+    <div class="card" id="secao-usuarios">
+      <div class="card-title">👥 Gerenciar usuários</div>
+      <div class="card-desc">Cadastre os membros da equipe que terão acesso ao sistema. Os convites são enviados pelo Supabase.</div>
+      <div class="field-wrap">
+        <label>E-mail do novo usuário</label>
+        <input type="email" id="novo-email" placeholder="colaborador@spleituras.org" />
+      </div>
+      <div class="field-wrap">
+        <label>Senha temporária</label>
+        <input type="text" id="nova-senha" placeholder="Mínimo 6 caracteres" />
+      </div>
+      <button class="btn btn-primary" onclick="criarUsuario()">Criar usuário</button>
+      <p style="font-size:12px; color:var(--text-hint); margin-top:10px;">O usuário receberá acesso imediato com essas credenciais. Oriente-o a trocar a senha após o primeiro login.</p>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="auth.js"></script>
+  <script>
+    const _sbUrl = localStorage.getItem('sb_url');
+    const _sbKey = localStorage.getItem('sb_key');
+    const _semConfig = !_sbUrl || !_sbKey;
+
+    if (_semConfig) {
+      document.getElementById('secao-usuarios').style.display = 'none';
+      carregarConfig();
+      const aviso = document.createElement('div');
+      aviso.style = 'background:#FAEEDA;border:1px solid #854F0B;border-radius:8px;padding:10px 14px;font-size:13px;color:#633806;margin-bottom:1rem;';
+      aviso.textContent = '⚠️ Configure as credenciais abaixo e salve. Depois faça login para acessar as demais funções.';
+      document.querySelector('.container').insertBefore(aviso, document.querySelector('.card'));
+    } else if (!Auth.requireAuth()) {
+    } else {
+      Auth.renderUserBar('user-bar');
+      carregarConfig();
+    }
+
+    function showToast(msg, type) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.className = 'toast ' + type + ' show';
+      setTimeout(() => t.className = 'toast', 3500);
+    }
+
+    function carregarConfig() {
+      const url = localStorage.getItem('sb_url') || '';
+      const key = localStorage.getItem('sb_key') || '';
+      document.getElementById('sb-url').value = url;
+      document.getElementById('sb-key').value = key;
+      document.getElementById('info-url').textContent = url ? url.replace('https://', '').substring(0, 35) + '...' : '—';
+      document.getElementById('info-key').textContent = key ? key.substring(0, 14) + '••••' : '—';
+    }
+
+    function salvarConfig() {
+      const url = document.getElementById('sb-url').value.trim();
+      const key = document.getElementById('sb-key').value.trim();
+      if (!url || !key) { showToast('Preencha URL e Anon Key.', 'error'); return; }
+      localStorage.setItem('sb_url', url);
+      localStorage.setItem('sb_key', key);
+      carregarConfig();
+      showToast('✓ Configuração salva!', 'success');
+    }
+
+    async function testarConexao() {
+      const url = localStorage.getItem('sb_url');
+      const key = localStorage.getItem('sb_key');
+      if (!url || !key) { showToast('Salve as credenciais primeiro.', 'error'); return; }
+      const badge = document.getElementById('conn-status');
+      badge.className = 'status-badge status-idle'; badge.textContent = '● Testando...';
+      try {
+        const headers = await Auth.readHeaders();
+        const res = await fetch(`${url}/rest/v1/atividades?limit=1`, { headers });
+        if (res.ok) {
+          badge.className = 'status-badge status-ok'; badge.textContent = '● Conectado';
+          document.getElementById('info-teste').textContent = new Date().toLocaleTimeString('pt-BR');
+          showToast('✓ Conexão bem-sucedida!', 'success');
+        } else {
+          badge.className = 'status-badge status-err'; badge.textContent = '● Erro ' + res.status;
+          showToast('Erro ' + res.status + ': verifique as credenciais.', 'error');
+        }
+      } catch(e) {
+        badge.className = 'status-badge status-err'; badge.textContent = '● Falha';
+        showToast('Não foi possível conectar.', 'error');
+      }
+    }
+
+    function limparConfig() {
+      if (!confirm('Limpar credenciais salvas?')) return;
+      localStorage.removeItem('sb_url'); localStorage.removeItem('sb_key');
+      carregarConfig();
+      showToast('Credenciais removidas.', 'success');
+    }
+
+    async function criarUsuario() {
+      const url = localStorage.getItem('sb_url');
+      const key = localStorage.getItem('sb_key');
+      const email = document.getElementById('novo-email').value.trim();
+      const senha = document.getElementById('nova-senha').value.trim();
+      if (!email || !senha) { showToast('Preencha e-mail e senha.', 'error'); return; }
+      if (senha.length < 6)  { showToast('Senha deve ter mínimo 6 caracteres.', 'error'); return; }
+      try {
+        const session = Auth.getSession();
+        const res = await fetch(`${url}/auth/v1/admin/users`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': key,
+            'Authorization': `Bearer ${session.access_token}`
+          },
+          body: JSON.stringify({ email, password: senha, email_confirm: true })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showToast(`✓ Usuário ${email} criado!`, 'success');
+          document.getElementById('novo-email').value = '';
+          document.getElementById('nova-senha').value = '';
+        } else {
+          showToast('Erro: ' + (data.msg || data.message || 'verifique os dados.'), 'error');
+        }
+      } catch(e) {
+        showToast('Erro de conexão.', 'error');
+      }
+    }
+  </script>
+</body>
+</html>
