@@ -55,7 +55,12 @@ const Auth = {
   },
 
   // Verifica se está logado — redireciona para login se não estiver
-  requireAuth() {
+  // Páginas em exemptPages não redirecionam se não houver credenciais configuradas
+  requireAuth(allowWithoutConfig = false) {
+    const hasConfig = !!(localStorage.getItem('sb_url') && localStorage.getItem('sb_key'));
+    if (allowWithoutConfig && !hasConfig) {
+      return false; // permite ficar na página sem redirecionar
+    }
     const session = Auth.getSession();
     if (!session) {
       window.location.href = 'login.html';
