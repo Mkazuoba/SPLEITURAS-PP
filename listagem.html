@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Registros — SP Leituras</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --bg: #F7F6F2; --surface: #FFFFFF; --border: #E2E0D8; --border-strong: #C8C5BB; --text: #1A1917; --text-muted: #6B6960; --text-hint: #9E9B93; --accent: #1A1917; --accent-fg: #FFFFFF; --green-bg: #EAF3DE; --green-text: #27500A; --green-border: #3B6D11; --red-bg: #FCEBEB; --red-text: #791F1F; --red-border: #A32D2D; --blue-bg: #E6F1FB; --blue-text: #0C447C; --blue-border: #185FA5; --amber-bg: #FAEEDA; --amber-text: #633806; --radius: 12px; --radius-sm: 8px; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 5rem 1rem 4rem; }
+    .top-bar { position: fixed; top: 0; left: 0; right: 0; padding: 12px 24px; display: flex; justify-content: flex-end; background: var(--bg); border-bottom: 1px solid var(--border); z-index: 10; }
+    .container { max-width: 920px; margin: 0 auto; }
+    .back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-muted); text-decoration: none; margin-bottom: 1.5rem; }
+    .back-link:hover { color: var(--text); }
+    .top-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 10px; }
+    .page-title { font-size: 20px; font-weight: 600; }
+    .page-desc  { font-size: 14px; color: var(--text-muted); }
+    .btn-new { padding: 9px 18px; background: var(--accent); color: var(--accent-fg); border: none; border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-new:hover { opacity: 0.85; }
+    .filter-bar { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; display: flex; gap: 10px; align-items: flex-end; margin-bottom: 1rem; flex-wrap: wrap; }
+    .filter-bar .field-wrap { display: flex; flex-direction: column; gap: 4px; }
+    label { font-size: 13px; color: var(--text-muted); font-weight: 500; }
+    input[type=text], select { padding: 8px 10px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); outline: none; appearance: none; -webkit-appearance: none; }
+    select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B6960' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; padding-right: 28px; cursor: pointer; }
+    .btn-filter { padding: 8px 16px; background: var(--accent); color: var(--accent-fg); border: none; border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .record-row { display: grid; grid-template-columns: 95px 70px 1fr 90px 80px 90px 36px; align-items: center; gap: 10px; padding: 11px 16px; border-bottom: 1px solid var(--border); transition: background 0.1s; }
+    .record-row:last-child { border-bottom: none; }
+    .record-row:hover { background: var(--bg); }
+    .record-row.header { background: var(--bg); font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); }
+    .record-row.header:hover { background: var(--bg); }
+    .cell-date { font-size: 13px; color: var(--text-muted); white-space: nowrap; }
+    .cell-name { font-size: 14px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .cell-name small { display: block; font-size: 12px; font-weight: 400; color: var(--text-muted); }
+    .cell-part { font-size: 14px; font-weight: 600; }
+    .badge { display: inline-block; padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+    .badge-planejada { background: var(--blue-bg); color: var(--blue-text); }
+    .badge-realizada { background: var(--green-bg); color: var(--green-text); }
+    .badge-cancelada { background: var(--red-bg); color: var(--red-text); }
+    .btn-icon { width: 28px; height: 28px; border-radius: 6px; background: transparent; border: 1px solid var(--border); cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; transition: all 0.1s; }
+    .btn-icon:hover { background: var(--bg); border-color: var(--border-strong); }
+    .empty-state { padding: 3rem; text-align: center; color: var(--text-hint); font-size: 14px; }
+    .loading { padding: 2rem; text-align: center; color: var(--text-muted); font-size: 14px; }
+    .pagination { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 1rem; }
+    .page-btn { padding: 6px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer; }
+    .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .page-info { font-size: 13px; color: var(--text-muted); }
+    .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); padding: 12px 22px; border-radius: var(--radius); font-size: 14px; font-weight: 500; z-index: 999; opacity: 0; transition: opacity 0.3s; pointer-events: none; box-shadow: 0 4px 20px rgba(0,0,0,0.12); }
+    .toast.show { opacity: 1; }
+    .toast.success { background: var(--green-bg); color: var(--green-text); border: 1px solid var(--green-border); }
+    .toast.error   { background: var(--red-bg); color: var(--red-text); border: 1px solid var(--red-border); }
+    @media (max-width: 700px) { .record-row { grid-template-columns: 1fr 1fr; } .record-row.header { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="top-bar" id="user-bar"></div>
+  <div class="container">
+    <a class="back-link" href="index.html">← Voltar ao início</a>
+    <div class="top-row">
+      <div><div class="page-title">📋 Registros</div><div class="page-desc">Atividades cadastradas no sistema</div></div>
+      <a class="btn-new" href="formulario.html">+ Nova atividade</a>
+    </div>
+
+    <div class="filter-bar">
+      <div class="field-wrap">
+        <label>Buscar</label>
+        <input type="text" id="f-busca" placeholder="Nome da atividade..." style="width:190px;" onkeydown="if(event.key==='Enter') carregar()" />
+      </div>
+      <div class="field-wrap"><label>Eixo</label>
+        <select id="f-eixo"><option value="">Todos</option><option>BibliON</option><option>BSP</option><option>BVL</option><option>CCAP</option><option>Sabesp</option><option>SisEB</option></select>
+      </div>
+      <div class="field-wrap"><label>Status</label>
+        <select id="f-status"><option value="">Todos</option><option>Planejada</option><option>Realizada</option><option>Cancelada</option></select>
+      </div>
+      <button class="btn-filter" onclick="carregar()">Filtrar</button>
+    </div>
+
+    <div class="card">
+      <div class="record-row header">
+        <span>Data</span><span>Eixo</span><span>Atividade</span><span>Formato</span><span>Part.</span><span>Status</span><span></span>
+      </div>
+      <div id="lista-body"><div class="loading">Carregando...</div></div>
+    </div>
+
+    <div class="pagination" id="pagination" style="display:none;">
+      <button class="page-btn" id="btn-ant" onclick="mudarPagina(-1)">← Anterior</button>
+      <span class="page-info" id="page-info"></span>
+      <button class="page-btn" id="btn-prox" onclick="mudarPagina(1)">Próxima →</button>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+  <script src="auth.js"></script>
+  <script>
+    const PER_PAGE = 20;
+    let pagina = 0, total = 0;
+
+    if (!Auth.requireAuth()) {}
+    else { Auth.renderUserBar('user-bar'); carregar(); }
+
+    function showToast(msg, type) { const t = document.getElementById('toast'); t.textContent = msg; t.className = 'toast ' + type + ' show'; setTimeout(() => t.className = 'toast', 3500); }
+
+    function badgeStatus(s) {
+      const cls = s==='Realizada' ? 'realizada' : s==='Cancelada' ? 'cancelada' : 'planejada';
+      return `<span class="badge badge-${cls}">${s||'Planejada'}</span>`;
+    }
+
+    async function carregar(p = 0) {
+      pagina = p;
+      const url    = localStorage.getItem('sb_url');
+      const busca  = document.getElementById('f-busca').value.trim();
+      const eixo   = document.getElementById('f-eixo').value;
+      const status = document.getElementById('f-status').value;
+
+      let query = `${url}/rest/v1/atividades?order=data.desc&limit=${PER_PAGE}&offset=${p*PER_PAGE}`;
+      if (eixo)   query += `&eixo=eq.${encodeURIComponent(eixo)}`;
+      if (status) query += `&status=eq.${encodeURIComponent(status)}`;
+      if (busca)  query += `&atividade=ilike.*${encodeURIComponent(busca)}*`;
+
+      try {
+        const headers = await Auth.readHeaders();
+        const res = await fetch(query, { headers: { ...headers, 'Prefer': 'count=exact' } });
+        if (!res.ok) throw new Error('Erro ' + res.status);
+        total = parseInt(res.headers.get('content-range')?.split('/')[1] || '0');
+        renderLista(await res.json());
+      } catch(e) {
+        document.getElementById('lista-body').innerHTML = `<div class="empty-state">Erro: ${e.message}</div>`;
+      }
+    }
+
+    function renderLista(dados) {
+      const body = document.getElementById('lista-body');
+      if (!dados.length) {
+        body.innerHTML = '<div class="empty-state">Nenhum registro encontrado.</div>';
+        document.getElementById('pagination').style.display = 'none'; return;
+      }
+      body.innerHTML = dados.map(r => {
+        const data = r.data ? new Date(r.data+'T12:00:00').toLocaleDateString('pt-BR') : '—';
+        const nome = (r.atividade||'—').substring(0,48) + (r.atividade?.length>48?'...':'');
+        return `<div class="record-row">
+          <span class="cell-date">${data}</span>
+          <span style="font-size:12px;font-weight:600;">${r.eixo||'—'}</span>
+          <span class="cell-name">${nome}<small>${r.projeto||''}</small></span>
+          <span style="font-size:12px;color:var(--text-muted);">${r.formato||'—'}</span>
+          <span class="cell-part">${r.num_participantes??'—'}</span>
+          <span>${badgeStatus(r.status)}</span>
+          <button class="btn-icon" onclick="window.location.href='formulario.html?id=${r.id}'" title="Editar">✏️</button>
+        </div>`;
+      }).join('');
+      const totalPags = Math.ceil(total/PER_PAGE);
+      if (totalPags > 1) {
+        document.getElementById('pagination').style.display = 'flex';
+        document.getElementById('page-info').textContent = `Pág. ${pagina+1} de ${totalPags} · ${total} registros`;
+        document.getElementById('btn-ant').disabled = pagina === 0;
+        document.getElementById('btn-prox').disabled = pagina >= totalPags-1;
+      } else {
+        document.getElementById('pagination').style.display = 'none';
+      }
+    }
+
+    function mudarPagina(dir) { carregar(pagina+dir); }
+  </script>
+</body>
+</html>

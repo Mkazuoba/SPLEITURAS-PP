@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Exportar — SP Leituras</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --bg: #F7F6F2; --surface: #FFFFFF; --border: #E2E0D8; --border-strong: #C8C5BB; --text: #1A1917; --text-muted: #6B6960; --text-hint: #9E9B93; --accent: #1A1917; --accent-fg: #FFFFFF; --green-bg: #EAF3DE; --green-text: #27500A; --green-border: #3B6D11; --red-bg: #FCEBEB; --red-text: #791F1F; --red-border: #A32D2D; --radius: 12px; --radius-sm: 8px; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 5rem 1rem 4rem; }
+    .top-bar { position: fixed; top: 0; left: 0; right: 0; padding: 12px 24px; display: flex; justify-content: flex-end; background: var(--bg); border-bottom: 1px solid var(--border); z-index: 10; }
+    .container { max-width: 580px; margin: 0 auto; }
+    .back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-muted); text-decoration: none; margin-bottom: 1.5rem; }
+    .back-link:hover { color: var(--text); }
+    .page-title { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+    .page-desc { font-size: 14px; color: var(--text-muted); margin-bottom: 1.5rem; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1rem; }
+    .section-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; }
+    .field-grid { display: grid; gap: 10px; }
+    .cols-2 { grid-template-columns: 1fr 1fr; }
+    .field-wrap { display: flex; flex-direction: column; gap: 5px; }
+    label { font-size: 13px; color: var(--text-muted); font-weight: 500; }
+    input[type=date], select { width: 100%; padding: 9px 12px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); outline: none; transition: border-color 0.15s; appearance: none; -webkit-appearance: none; }
+    select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B6960' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 32px; cursor: pointer; }
+    input:focus, select:focus { border-color: var(--border-strong); }
+    .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1rem; }
+    .stat-card { background: var(--bg); border-radius: var(--radius-sm); padding: 12px; text-align: center; }
+    .stat-num { font-size: 22px; font-weight: 600; }
+    .stat-label { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .btn { width: 100%; padding: 11px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; border-radius: var(--radius-sm); cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-primary { background: var(--accent); color: var(--accent-fg); border: none; }
+    .btn-primary:hover { opacity: 0.85; }
+    .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); margin-top: 8px; }
+    .btn-secondary:hover { border-color: var(--border-strong); }
+    .preview-table-wrap { overflow-x: auto; margin-top: 10px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { text-align: left; padding: 8px 10px; background: var(--bg); color: var(--text-muted); font-weight: 500; font-size: 12px; border-bottom: 1px solid var(--border); }
+    td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--bg); }
+    .empty-state { padding: 3rem; text-align: center; color: var(--text-hint); font-size: 14px; }
+    .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); padding: 12px 22px; border-radius: var(--radius); font-size: 14px; font-weight: 500; z-index: 999; opacity: 0; transition: opacity 0.3s; pointer-events: none; box-shadow: 0 4px 20px rgba(0,0,0,0.12); }
+    .toast.show { opacity: 1; }
+    .toast.success { background: var(--green-bg); color: var(--green-text); border: 1px solid var(--green-border); }
+    .toast.error   { background: var(--red-bg); color: var(--red-text); border: 1px solid var(--red-border); }
+  </style>
+</head>
+<body>
+  <div class="top-bar" id="user-bar"></div>
+  <div class="container">
+    <a class="back-link" href="index.html">← Voltar ao início</a>
+    <div class="page-title">📥 Exportar dados</div>
+    <div class="page-desc">Filtre e baixe os registros em CSV.</div>
+
+    <div class="card">
+      <div class="section-label">Filtros</div>
+      <div class="field-grid cols-2">
+        <div class="field-wrap"><label>Data início</label><input type="date" id="f-data-ini" /></div>
+        <div class="field-wrap"><label>Data fim</label><input type="date" id="f-data-fim" /></div>
+        <div class="field-wrap"><label>Eixo</label>
+          <select id="f-eixo"><option value="">Todos</option><option>BibliON</option><option>BSP</option><option>BVL</option><option>CCAP</option><option>Sabesp</option><option>SisEB</option></select>
+        </div>
+        <div class="field-wrap"><label>Status</label>
+          <select id="f-status"><option value="">Todos</option><option>Planejada</option><option>Realizada</option><option>Cancelada</option></select>
+        </div>
+        <div class="field-wrap"><label>Quadrimestre</label>
+          <select id="f-quad"><option value="">Todos</option><option>1º Quadrimestre</option><option>2º Quadrimestre</option><option>3º Quadrimestre</option></select>
+        </div>
+        <div class="field-wrap"><label>Formato</label>
+          <select id="f-formato"><option value="">Todos</option><option>Presencial</option><option>Virtual</option></select>
+        </div>
+      </div>
+      <button class="btn btn-secondary" onclick="buscarDados()">🔍 Buscar registros</button>
+    </div>
+
+    <div class="stat-grid" id="stat-grid" style="display:none;">
+      <div class="stat-card"><div class="stat-num" id="stat-total">0</div><div class="stat-label">Registros</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-part">0</div><div class="stat-label">Participantes</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-real">0</div><div class="stat-label">Realizadas</div></div>
+    </div>
+
+    <div class="card" id="result-card" style="display:none;">
+      <div class="section-label">Prévia</div>
+      <div class="preview-table-wrap">
+        <table><thead><tr><th>Data</th><th>Eixo</th><th>Atividade</th><th>Formato</th><th>Participantes</th><th>Status</th></tr></thead>
+        <tbody id="preview-body"></tbody></table>
+      </div>
+      <div style="margin-top:1rem;"><button class="btn btn-primary" onclick="exportarCSV()">⬇ Baixar CSV</button></div>
+    </div>
+    <div id="empty-state" class="empty-state" style="display:none;">Nenhum registro encontrado.</div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+  <script src="auth.js"></script>
+  <script>
+    let dados = [];
+    if (!Auth.requireAuth()) {}
+    else Auth.renderUserBar('user-bar');
+
+    function showToast(msg, type) { const t = document.getElementById('toast'); t.textContent = msg; t.className = 'toast ' + type + ' show'; setTimeout(() => t.className = 'toast', 3500); }
+
+    async function buscarDados() {
+      const url = localStorage.getItem('sb_url');
+      let query = `${url}/rest/v1/atividades?order=data.desc&limit=1000`;
+      const ini  = document.getElementById('f-data-ini').value;
+      const fim  = document.getElementById('f-data-fim').value;
+      const eixo = document.getElementById('f-eixo').value;
+      const stat = document.getElementById('f-status').value;
+      const quad = document.getElementById('f-quad').value;
+      const fmt  = document.getElementById('f-formato').value;
+      if (ini)  query += `&data=gte.${ini}`;
+      if (fim)  query += `&data=lte.${fim}`;
+      if (eixo) query += `&eixo=eq.${encodeURIComponent(eixo)}`;
+      if (stat) query += `&status=eq.${encodeURIComponent(stat)}`;
+      if (quad) query += `&quadrimestre=eq.${encodeURIComponent(quad)}`;
+      if (fmt)  query += `&formato=eq.${encodeURIComponent(fmt)}`;
+      try {
+        const headers = await Auth.readHeaders();
+        const res = await fetch(query, { headers });
+        if (!res.ok) throw new Error('Erro ' + res.status);
+        dados = await res.json();
+        renderResultados();
+      } catch(e) { showToast('Erro ao buscar: ' + e.message, 'error'); }
+    }
+
+    function renderResultados() {
+      if (dados.length === 0) {
+        document.getElementById('stat-grid').style.display = 'none';
+        document.getElementById('result-card').style.display = 'none';
+        document.getElementById('empty-state').style.display = 'block'; return;
+      }
+      document.getElementById('empty-state').style.display = 'none';
+      document.getElementById('stat-grid').style.display = 'grid';
+      document.getElementById('result-card').style.display = 'block';
+      document.getElementById('stat-total').textContent = dados.length;
+      document.getElementById('stat-part').textContent = dados.reduce((s,r) => s+(r.num_participantes||0),0).toLocaleString('pt-BR');
+      document.getElementById('stat-real').textContent = dados.filter(r=>r.status==='Realizada').length;
+      const tbody = document.getElementById('preview-body');
+      tbody.innerHTML = dados.slice(0,10).map(r => `<tr>
+        <td>${r.data ? new Date(r.data+'T12:00:00').toLocaleDateString('pt-BR') : '—'}</td>
+        <td>${r.eixo||'—'}</td>
+        <td>${(r.atividade||'—').substring(0,38)}${r.atividade?.length>38?'...':''}</td>
+        <td>${r.formato||'—'}</td><td>${r.num_participantes??'—'}</td><td>${r.status||'—'}</td>
+      </tr>`).join('');
+      if (dados.length > 10) tbody.innerHTML += `<tr><td colspan="6" style="text-align:center;color:var(--text-hint);font-size:12px;padding:10px;">... e mais ${dados.length-10} registros</td></tr>`;
+    }
+
+    function exportarCSV() {
+      if (!dados.length) return;
+      const cols = ['id','eixo','projeto','atividade','descricao','data','hora_inicio','hora_fim','semana','quadrimestre','formato','local','inscricao','ministrante','acompanhamento','nec_tecnicas','montagem_desmontagem','num_participantes','foto_link','observacao_equipe','status','preenchido_por','criado_em'];
+      const sep = ';';
+      const esc = v => { if(v==null) return ''; const s=String(v); return (s.includes(sep)||s.includes('"')||s.includes('\n')) ? `"${s.replace(/"/g,'""')}"` : s; };
+      const csv = '\uFEFF' + [cols.join(sep), ...dados.map(r=>cols.map(c=>esc(r[c])).join(sep))].join('\n');
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
+      a.download = `atividades_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+      showToast(`✓ ${dados.length} registros exportados!`, 'success');
+    }
+  </script>
+</body>
+</html>

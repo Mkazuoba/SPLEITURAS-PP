@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nova Atividade — SP Leituras</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #F7F6F2; --surface: #FFFFFF; --border: #E2E0D8; --border-strong: #C8C5BB;
+      --text: #1A1917; --text-muted: #6B6960; --text-hint: #9E9B93;
+      --accent: #1A1917; --accent-fg: #FFFFFF;
+      --green-bg: #EAF3DE; --green-text: #27500A; --green-border: #3B6D11;
+      --red-bg: #FCEBEB; --red-text: #791F1F; --red-border: #A32D2D;
+      --blue-bg: #E6F1FB; --blue-text: #0C447C; --blue-border: #185FA5;
+      --radius: 12px; --radius-sm: 8px;
+    }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 5rem 1rem 4rem; }
+    .top-bar { position: fixed; top: 0; left: 0; right: 0; padding: 12px 24px; display: flex; justify-content: flex-end; background: var(--bg); border-bottom: 1px solid var(--border); z-index: 10; }
+    .container { max-width: 680px; margin: 0 auto; }
+    .back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-muted); text-decoration: none; margin-bottom: 1.5rem; }
+    .back-link:hover { color: var(--text); }
+    .page-title { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+    .page-desc { font-size: 14px; color: var(--text-muted); margin-bottom: 1.5rem; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1rem; }
+    .section-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 14px; }
+    .field-grid { display: grid; gap: 12px; }
+    .cols-2 { grid-template-columns: 1fr 1fr; }
+    .cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .field-wrap { display: flex; flex-direction: column; gap: 5px; }
+    label { font-size: 13px; color: var(--text-muted); font-weight: 500; }
+    .req { color: var(--red-border); margin-left: 2px; }
+    input[type=text], input[type=date], input[type=time], input[type=number], input[type=url], select, textarea {
+      width: 100%; padding: 9px 12px; font-family: 'DM Sans', sans-serif; font-size: 14px;
+      color: var(--text); background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); outline: none; transition: border-color 0.15s;
+      appearance: none; -webkit-appearance: none;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--border-strong); box-shadow: 0 0 0 3px rgba(26,25,23,0.06); }
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B6960' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 10px center; padding-right: 32px; cursor: pointer;
+    }
+    textarea { min-height: 80px; resize: vertical; line-height: 1.6; }
+    .derived-row { display: none; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    .derived-chip { background: var(--bg); border: 1px solid var(--border); border-radius: 999px; padding: 4px 12px; font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+    .derived-chip strong { color: var(--text); font-weight: 500; }
+    .status-row { display: flex; gap: 8px; }
+    .status-btn { flex: 1; padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text-muted); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.15s; text-align: center; }
+    .status-btn:hover { background: var(--bg); border-color: var(--border-strong); }
+    .status-btn.active-planejada { background: var(--blue-bg); color: var(--blue-text); border-color: var(--blue-border); }
+    .status-btn.active-realizada { background: var(--green-bg); color: var(--green-text); border-color: var(--green-border); }
+    .status-btn.active-cancelada { background: var(--red-bg); color: var(--red-text); border-color: var(--red-border); }
+    .footer-card { display: flex; justify-content: flex-end; align-items: center; gap: 10px; padding: 1rem 0; }
+    .btn-clear { padding: 10px 18px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; color: var(--text-muted); background: transparent; border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; transition: all 0.15s; }
+    .btn-clear:hover { background: var(--surface); border-color: var(--border-strong); }
+    .btn-submit { padding: 10px 24px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; color: var(--accent-fg); background: var(--accent); border: none; border-radius: var(--radius-sm); cursor: pointer; transition: opacity 0.15s; display: flex; align-items: center; gap: 8px; }
+    .btn-submit:hover { opacity: 0.85; }
+    .btn-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+    .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); padding: 12px 22px; border-radius: var(--radius); font-size: 14px; font-weight: 500; z-index: 999; opacity: 0; transition: opacity 0.3s; pointer-events: none; box-shadow: 0 4px 20px rgba(0,0,0,0.12); }
+    .toast.show { opacity: 1; }
+    .toast.success { background: var(--green-bg); color: var(--green-text); border: 1px solid var(--green-border); }
+    .toast.error   { background: var(--red-bg); color: var(--red-text); border: 1px solid var(--red-border); }
+    @media (max-width: 560px) { .cols-2, .cols-3 { grid-template-columns: 1fr; } .status-row { flex-direction: column; } }
+  </style>
+</head>
+<body>
+  <div class="top-bar" id="user-bar"></div>
+  <div class="container">
+    <a class="back-link" href="index.html">← Voltar ao início</a>
+    <div class="page-title">📝 Nova atividade</div>
+    <div class="page-desc">Preencha os dados da atividade cultural.</div>
+
+    <div class="card">
+      <div class="section-label">📋 Identificação</div>
+      <div class="field-grid cols-2">
+        <div class="field-wrap">
+          <label>Eixo <span class="req">*</span></label>
+          <select id="f-eixo">
+            <option value="">Selecione...</option>
+            <option>BibliON</option><option>BSP</option><option>BVL</option>
+            <option>CCAP</option><option>Sabesp</option><option>SisEB</option>
+          </select>
+        </div>
+        <div class="field-wrap">
+          <label>Projeto <span class="req">*</span></label>
+          <select id="f-projeto">
+            <option value="">Selecione...</option>
+            <option>BIBLIONCAST</option><option>CL-BibliON</option><option>CL-SisEB</option>
+            <option>CL-SisEB-PRES</option><option>CL-SisEB-VIRT</option><option>GT</option>
+            <option>GT-2025</option><option>JL-VIRT</option><option>PCOE</option>
+            <option>PCOE-CCAP</option><option>PCOE-PRES</option><option>PCOE-VIRT</option>
+            <option>PPA-PRES</option><option>PPC</option><option>PPC-PRES</option>
+            <option>PPJ</option><option>PPJ-PRES</option><option>PRALER</option>
+            <option>PSPL</option><option>SABESP</option><option>SEM META</option>
+            <option>Seminário Biblioteca Viva</option><option>VL-MCH</option>
+            <option>VL-MEE</option><option>VL-MFL</option><option>VL-VIRT</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">📌 Atividade</div>
+      <div class="field-grid">
+        <div class="field-wrap"><label>Nome da atividade <span class="req">*</span></label><input type="text" id="f-atividade" placeholder="Ex: Oficina de Xadrez" /></div>
+        <div class="field-wrap"><label>Descrição</label><textarea id="f-descricao" placeholder="Descreva a atividade..."></textarea></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">📅 Data e horário</div>
+      <div class="field-grid cols-3">
+        <div class="field-wrap"><label>Data <span class="req">*</span></label><input type="date" id="f-data" onchange="updateDerived()" /></div>
+        <div class="field-wrap"><label>Hora início</label><input type="time" id="f-hora-inicio" /></div>
+        <div class="field-wrap"><label>Hora fim</label><input type="time" id="f-hora-fim" /></div>
+      </div>
+      <div class="derived-row" id="derived-row">
+        <div class="derived-chip">📆 <strong id="chip-semana">—</strong></div>
+        <div class="derived-chip">🗂 <strong id="chip-quad">—</strong></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">📍 Local e formato</div>
+      <div class="field-grid cols-2">
+        <div class="field-wrap"><label>Formato <span class="req">*</span></label>
+          <select id="f-formato"><option value="">Selecione...</option><option>Presencial</option><option>Virtual</option></select>
+        </div>
+        <div class="field-wrap"><label>Local</label><input type="text" id="f-local" placeholder="Ex: Auditório, Zoom..." /></div>
+      </div>
+      <div class="field-grid" style="margin-top:12px;">
+        <div class="field-wrap"><label>Inscrição</label><input type="text" id="f-inscricao" placeholder="Ex: Não é necessário inscrição..." /></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">👥 Equipe e ministrantes</div>
+      <div class="field-grid cols-2">
+        <div class="field-wrap"><label>Ministrante(s)</label><input type="text" id="f-ministrante" placeholder="Nome(s)" /></div>
+        <div class="field-wrap"><label>Acompanhamento</label><input type="text" id="f-acompanhamento" placeholder="Equipe responsável" /></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">🔧 Produção</div>
+      <div class="field-grid cols-2">
+        <div class="field-wrap"><label>Necessidades técnicas</label><textarea id="f-nec-tecnicas" style="min-height:64px;" placeholder="Equipamentos, materiais..."></textarea></div>
+        <div class="field-wrap"><label>Montagem e desmontagem</label><textarea id="f-montagem" style="min-height:64px;" placeholder="Instruções de montagem..."></textarea></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">📊 Resultados</div>
+      <div class="field-grid cols-2">
+        <div class="field-wrap"><label>Nº de participantes <span class="req">*</span></label><input type="number" id="f-participantes" min="0" placeholder="0" /></div>
+        <div class="field-wrap"><label>Foto (link)</label><input type="url" id="f-foto" placeholder="https://..." /></div>
+      </div>
+      <div class="field-grid" style="margin-top:12px;">
+        <div class="field-wrap"><label>Observação da equipe</label><textarea id="f-obs" placeholder="Relato pós-atividade..."></textarea></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">🚦 Status</div>
+      <div class="status-row">
+        <button class="status-btn active-planejada" data-status="Planejada" onclick="setStatus(this)">Planejada</button>
+        <button class="status-btn" data-status="Realizada" onclick="setStatus(this)">Realizada</button>
+        <button class="status-btn" data-status="Cancelada" onclick="setStatus(this)">Cancelada</button>
+      </div>
+      <input type="hidden" id="f-status" value="Planejada" />
+    </div>
+
+    <div class="footer-card">
+      <button class="btn-clear" onclick="clearForm()">Limpar campos</button>
+      <button class="btn-submit" id="btn-submit" onclick="submitForm()">💾 Salvar atividade</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="auth.js"></script>
+  <script>
+    const DIAS = ['Domingo','Segunda-Feira','Terça-Feira','Quarta-Feira','Quinta-Feira','Sexta-Feira','Sábado'];
+    if (!Auth.requireAuth()) {}
+    else Auth.renderUserBar('user-bar');
+
+    function updateDerived() {
+      const val = document.getElementById('f-data').value;
+      if (!val) { document.getElementById('derived-row').style.display = 'none'; return; }
+      const d = new Date(val + 'T12:00:00');
+      const mes = d.getMonth() + 1;
+      document.getElementById('chip-semana').textContent = DIAS[d.getDay()];
+      document.getElementById('chip-quad').textContent = mes <= 4 ? '1º Quadrimestre' : mes <= 8 ? '2º Quadrimestre' : '3º Quadrimestre';
+      document.getElementById('derived-row').style.display = 'flex';
+    }
+
+    function setStatus(btn) {
+      document.querySelectorAll('.status-btn').forEach(b => b.className = 'status-btn');
+      btn.classList.add('active-' + btn.dataset.status.toLowerCase());
+      document.getElementById('f-status').value = btn.dataset.status;
+    }
+
+    function showToast(msg, type) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.className = 'toast ' + type + ' show';
+      setTimeout(() => t.className = 'toast', 3500);
+    }
+
+    function clearForm() {
+      ['f-eixo','f-projeto','f-atividade','f-descricao','f-data','f-hora-inicio','f-hora-fim',
+       'f-formato','f-local','f-inscricao','f-ministrante','f-acompanhamento',
+       'f-nec-tecnicas','f-montagem','f-participantes','f-foto','f-obs'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.value = '';
+      });
+      document.getElementById('f-status').value = 'Planejada';
+      document.querySelectorAll('.status-btn').forEach(b => b.className = 'status-btn');
+      document.querySelector('[data-status="Planejada"]').classList.add('active-planejada');
+      document.getElementById('derived-row').style.display = 'none';
+    }
+
+    async function submitForm() {
+      const url = localStorage.getItem('sb_url');
+      const eixo = document.getElementById('f-eixo').value;
+      const projeto = document.getElementById('f-projeto').value;
+      const atividade = document.getElementById('f-atividade').value.trim();
+      const data = document.getElementById('f-data').value;
+      const formato = document.getElementById('f-formato').value;
+      const participantes = document.getElementById('f-participantes').value;
+
+      if (!eixo || !projeto || !atividade || !data || !formato || participantes === '') {
+        showToast('Preencha os campos obrigatórios (*).', 'error'); return;
+      }
+
+      const d = new Date(data + 'T12:00:00');
+      const mes = d.getMonth() + 1;
+      const user = Auth.getUser();
+
+      const payload = {
+        eixo, projeto, atividade,
+        descricao: document.getElementById('f-descricao').value.trim() || null,
+        data, hora_inicio: document.getElementById('f-hora-inicio').value || null,
+        hora_fim: document.getElementById('f-hora-fim').value || null,
+        semana: DIAS[d.getDay()],
+        quadrimestre: mes <= 4 ? '1º Quadrimestre' : mes <= 8 ? '2º Quadrimestre' : '3º Quadrimestre',
+        formato, local: document.getElementById('f-local').value.trim() || null,
+        inscricao: document.getElementById('f-inscricao').value.trim() || null,
+        ministrante: document.getElementById('f-ministrante').value.trim() || null,
+        acompanhamento: document.getElementById('f-acompanhamento').value.trim() || null,
+        nec_tecnicas: document.getElementById('f-nec-tecnicas').value.trim() || null,
+        montagem_desmontagem: document.getElementById('f-montagem').value.trim() || null,
+        num_participantes: parseInt(participantes),
+        foto_link: document.getElementById('f-foto').value.trim() || null,
+        observacao_equipe: document.getElementById('f-obs').value.trim() || null,
+        status: document.getElementById('f-status').value,
+        preenchido_por: user?.email || null,
+        criado_por_uid: user?.id || null,
+      };
+
+      const btn = document.getElementById('btn-submit');
+      btn.disabled = true; btn.textContent = 'Salvando...';
+
+      try {
+        const headers = await Auth.headers();
+        const res = await fetch(`${url}/rest/v1/atividades`, {
+          method: 'POST', headers: { ...headers, 'Prefer': 'return=minimal' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok || res.status === 201) {
+          showToast('✓ Atividade salva com sucesso!', 'success');
+          clearForm();
+        } else {
+          const err = await res.json().catch(() => ({}));
+          showToast('Erro: ' + (err.message || 'verifique os dados.'), 'error');
+        }
+      } catch(e) {
+        showToast('Erro de conexão.', 'error');
+      }
+      btn.disabled = false; btn.textContent = '💾 Salvar atividade';
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Entrar — SP Leituras</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #F7F6F2; --surface: #FFFFFF; --border: #E2E0D8;
+      --border-strong: #C8C5BB; --text: #1A1917; --text-muted: #6B6960;
+      --text-hint: #9E9B93; --accent: #1A1917; --accent-fg: #FFFFFF;
+      --green-bg: #EAF3DE; --green-text: #27500A; --green-border: #3B6D11;
+      --red-bg: #FCEBEB; --red-text: #791F1F; --red-border: #A32D2D;
+      --radius: 12px; --radius-sm: 8px;
+    }
+    body {
+      font-family: 'DM Sans', sans-serif; background: var(--bg);
+      color: var(--text); min-height: 100vh;
+      display: flex; align-items: center; justify-content: center; padding: 1rem;
+    }
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 2rem; width: 100%; max-width: 380px;
+    }
+    .logo-mark {
+      width: 44px; height: 44px; background: var(--accent);
+      border-radius: var(--radius-sm); display: flex; align-items: center;
+      justify-content: center; margin: 0 auto 1.25rem;
+      font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--accent-fg);
+    }
+    h1 {
+      font-family: 'DM Serif Display', serif; font-size: 22px; font-weight: 400;
+      text-align: center; margin-bottom: 4px;
+    }
+    .subtitle { font-size: 13px; color: var(--text-muted); text-align: center; margin-bottom: 1.75rem; }
+    .field-wrap { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+    label { font-size: 13px; color: var(--text-muted); font-weight: 500; }
+    input {
+      width: 100%; padding: 10px 12px;
+      font-family: 'DM Sans', sans-serif; font-size: 14px;
+      color: var(--text); background: var(--surface);
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      outline: none; transition: border-color 0.15s;
+    }
+    input:focus { border-color: var(--border-strong); box-shadow: 0 0 0 3px rgba(26,25,23,0.06); }
+    .btn-submit {
+      width: 100%; padding: 11px; margin-top: 4px;
+      font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
+      background: var(--accent); color: var(--accent-fg);
+      border: none; border-radius: var(--radius-sm); cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .btn-submit:hover { opacity: 0.85; }
+    .btn-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+    .error-msg {
+      background: var(--red-bg); color: var(--red-text);
+      border: 1px solid var(--red-border); border-radius: var(--radius-sm);
+      padding: 10px 12px; font-size: 13px; margin-top: 12px; display: none;
+    }
+    .divider { height: 1px; background: var(--border); margin: 1.25rem 0; }
+    .admin-link {
+      text-align: center; font-size: 12px; color: var(--text-hint);
+    }
+    .admin-link a { color: var(--text-muted); text-decoration: none; }
+    .admin-link a:hover { color: var(--text); }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo-mark">SP</div>
+    <h1>Programação Cultural</h1>
+    <p class="subtitle">Entre com seu e-mail e senha</p>
+
+    <div class="field-wrap">
+      <label>E-mail</label>
+      <input type="email" id="email" placeholder="seu@email.com" autocomplete="email" />
+    </div>
+    <div class="field-wrap">
+      <label>Senha</label>
+      <input type="password" id="senha" placeholder="••••••••" autocomplete="current-password"
+        onkeydown="if(event.key==='Enter') fazerLogin()" />
+    </div>
+
+    <button class="btn-submit" id="btn-login" onclick="fazerLogin()">Entrar</button>
+    <div class="error-msg" id="error-msg"></div>
+
+    <div class="divider"></div>
+    <div class="admin-link">
+      Primeiro acesso? <a href="admin.html">Configure o banco de dados</a>
+    </div>
+  </div>
+
+  <script src="auth.js"></script>
+  <script>
+    // Se já está logado, vai direto para o início
+    if (Auth.getSession()) window.location.href = 'index.html';
+
+    async function fazerLogin() {
+      const email = document.getElementById('email').value.trim();
+      const senha = document.getElementById('senha').value;
+      const btn   = document.getElementById('btn-login');
+      const err   = document.getElementById('error-msg');
+
+      if (!email || !senha) {
+        err.textContent = 'Preencha e-mail e senha.';
+        err.style.display = 'block'; return;
+      }
+
+      btn.disabled = true; btn.textContent = 'Entrando...';
+      err.style.display = 'none';
+
+      try {
+        await Auth.login(email, senha);
+        window.location.href = 'index.html';
+      } catch(e) {
+        err.textContent = e.message;
+        err.style.display = 'block';
+        btn.disabled = false; btn.textContent = 'Entrar';
+      }
+    }
+  </script>
+</body>
+</html>
